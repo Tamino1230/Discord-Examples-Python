@@ -25,6 +25,7 @@ class RPC:
         self.details = None
         self.state = None
         self.connected = False
+        self.author = "github.com/Tamino1230"
 
     def set_update(self, details: str, state: str):
         """
