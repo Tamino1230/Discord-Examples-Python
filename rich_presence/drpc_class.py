@@ -6,10 +6,10 @@ class RPC:
         """
         ### Example to activate DRPC:
         ```
-        rpc_class = RPC("client id here")
-        rpc_class.set_update("details", "state")
-        rpc_class.connect()
-        rpc_class.update_rpc()
+        rpc = RPC("client id here")
+        rpc.set_update("details", "state")
+        rpc.connect()
+        rpc.update_rpc()
 
         while True:
             try:
@@ -19,13 +19,17 @@ class RPC:
                 print("Exited")
         ```
         """
-        self.rpc = Presence(client_id)
         self.client_id = client_id
+        self.rpc = Presence(self.client_id)
         self.start_time = time.time()
         self.details = None
         self.state = None
+        self.party_size = None
+        self.party_max = None
+        self.buttons = []
         self.connected = False
-        self.author = "github.com/Tamino1230"
+        self.__author__ = "github.com/Tamino1230"
+
 
     def set_update(self, details: str, state: str):
         """
@@ -35,6 +39,7 @@ class RPC:
         """
         self.details = details
         self.state = state
+
 
     def connect(self):
         """
@@ -63,16 +68,19 @@ class RPC:
                 self.rpc.update(
                     details=self.details,
                     state=self.state,
-                    start=self.start_time
+                    start=self.start_time,
+                    buttons=self.buttons
                 )
                 return
                
             self.rpc.update(
                 details=self.details,
-                state=self.state
+                state=self.state,
+                buttons=self.buttons
             )
             return
         print("Details and State cannot be None!")
+
 
     def clear_rpc(self):
         """
@@ -83,6 +91,7 @@ class RPC:
             return
         self.rpc.clear()
     
+
     def disconnect(self):
         """
         Disconnects yourself from the rpc server (If connected)
@@ -92,17 +101,41 @@ class RPC:
             return
         self.rpc.close()
 
+    def add_button(self, label: str, url: str) -> None:
+        """
+        Adds a button to the RPC (limit: 2).
+        """
+        if len(self.buttons) >= 2:
+            print("You cannot add more than 2 buttons.")
+            return
+
+        if not url.startswith("https://") and not url.startswith("http://"):
+            print(f'Your link "{url}" must start with "https://" or "http://"')
+            return
+
+        self.buttons.append({
+            "label": label,
+            "url": url
+        })
+
 
 if __name__ == "__main__":
-    rpc_class = RPC("client id here")
-    rpc_class.set_update("details", "state")
-    rpc_class.connect()
-    rpc_class.update_rpc()
-
-    print("went through all commands.")
+    rpc = RPC("your client id")
+    rpc.add_button("Button 1", "https://github.com/Tamino1230")
+    rpc.add_button("Button 2", "https://github.com/Tamino1230")
+    rpc.set_update("details", "state")
+    rpc.connect()
+    rpc.update_rpc()
+    print(rpc.buttons)
     while True:
         try:
             print("staying alive (15s)")
             time.sleep(15)
+        except KeyboardInterrupt:
+            rpc.disconnect()
+            print("Disconnected from RPC Server")
+            break
         except Exception as e:
-            print("Exited drpc")
+            rpc.disconnect()
+            print("Disconnected from RPC Server")
+            break
